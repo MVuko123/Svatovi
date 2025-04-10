@@ -1,9 +1,9 @@
 const nodemailer = require('nodemailer');
 const formidable = require('formidable');
-const { parse } = require('querystring'); // for parsing form data
+const fs = require('fs');
 
-exports.handler = async function(event, context) {
-  // Ensure that the method is POST
+exports.handler = async (event, context) => {
+  // Ensure the HTTP method is POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -11,10 +11,10 @@ exports.handler = async function(event, context) {
     };
   }
 
-  // Create a new form to parse incoming data
+  // Create a new formidable IncomingForm instance
   const form = new formidable.IncomingForm();
 
-  // Promise that handles the parsing
+  // Return a Promise to handle form parsing
   const parseFormData = new Promise((resolve, reject) => {
     form.parse(event, (err, fields, files) => {
       if (err) {
@@ -28,7 +28,7 @@ exports.handler = async function(event, context) {
   try {
     const { fields, files } = await parseFormData;
 
-    // Check if files were uploaded
+    // Ensure files were uploaded
     if (!files || Object.keys(files).length === 0) {
       return {
         statusCode: 400,
@@ -36,31 +36,31 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Create the transporter to send the email
+    // Create a transporter to send the email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER, // Set your Gmail user here
+        pass: process.env.EMAIL_PASS, // Set your Gmail password here
       },
     });
 
-    // Prepare the image attachments
+    // Prepare the attachments array for email
     const attachments = Object.keys(files).map((fileKey) => ({
       filename: files[fileKey].originalFilename,
-      path: files[fileKey].filepath,
+      path: files[fileKey].filepath,  // Path where the file is saved
     }));
 
-    // Create the email options
+    // Set up the email options
     const mailOptions = {
-      from: 'svatovi.juraj@gmail.com',
-      to: 'svatovi.juraj@gmail.com',
+      from: 'svatovi.juraj@gmail.com', // Sender's email
+      to: 'svatovi.juraj@gmail.com',   // Recipient's email
       subject: 'Wedding Picture Uploads',
       text: 'Please find the attached pictures.',
       attachments: attachments,
     };
 
-    // Send the email with the uploaded files
+    // Send the email with the uploaded pictures
     await transporter.sendMail(mailOptions);
 
     return {
@@ -68,6 +68,7 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({ message: "Pictures uploaded and email sent!" }),
     };
   } catch (error) {
+    console.error('Error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: `Error: ${error.message}` }),
