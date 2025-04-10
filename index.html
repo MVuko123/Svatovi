@@ -1,72 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Upload and Email Images</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload and Send Images</title>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; padding: 20px;">
-  <h2>Upload Images</h2>
-
-  <input type="file" id="imageInput" accept="image/*" multiple capture="environment">
-  <br><br>
+<body>
+  <h2>Upload and Email Images</h2>
+  <input type="file" id="fileInput" accept="image/*" multiple capture="environment" />
+  <br />
   <button onclick="sendImages()">Send to Email</button>
 
-  <p id="status" style="margin-top: 20px;"></p>
-
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("g42tnmFpURrlkWGUF"); // Your public key
+    emailjs.init("g42tnmFpURrlkWGUF"); // Your Public Key
 
     async function sendImages() {
-      const input = document.getElementById('imageInput');
-      const files = input.files;
-      const status = document.getElementById('status');
-      if (!files.length) {
-        status.innerText = 'Please select image(s).';
-        return;
-      }
-
-      status.innerText = 'Uploading...';
+      const files = document.getElementById("fileInput").files;
+      if (!files.length) return alert("Please select at least one image.");
 
       const uploadedLinks = [];
 
       for (const file of files) {
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('token', 'gofile');
+        formData.append("file", file);
 
         try {
-          const response = await fetch('https://store1.gofile.io/uploadFile', {
-            method: 'POST',
-            body: formData
+          const res = await fetch("https://store1.gofile.io/uploadFile", {
+            method: "POST",
+            body: formData,
           });
 
-          const result = await response.json();
-          if (result.status === 'ok') {
-            uploadedLinks.push(result.data.downloadPage);
-          }
+          const text = await res.text();
+          const result = JSON.parse(text);
+
+          if (result.status !== "ok") throw new Error("Gofile upload failed");
+
+          uploadedLinks.push(result.data.downloadPage);
         } catch (error) {
-          console.error('Upload failed:', error);
+          console.error("Upload failed:", error);
+          alert("Upload failed: " + error.message);
+          return;
         }
       }
 
-      if (uploadedLinks.length === 0) {
-        status.innerText = 'Upload failed. Try again.';
-        return;
-      }
+      const plainLinks = uploadedLinks.join("\n");
 
-      const emailParams = {
-        images: uploadedLinks.join("<br>")
-      };
-
-      emailjs.send("service_anlae55", "template_xxka83q", emailParams)
-        .then(() => {
-          status.innerText = 'Images sent to your email!';
-        })
-        .catch((err) => {
-          console.error('Email send error:', err);
-          status.innerText = 'Failed to send email.';
-        });
+      emailjs.send("service_anlae55", "template_xxka83q", {
+        images: plainLinks
+      })
+      .then(() => {
+        alert("Email sent successfully!");
+      })
+      .catch((error) => {
+        console.error("Email send failed:", error);
+        alert("Email send failed: " + error.text);
+      });
     }
   </script>
 </body>
