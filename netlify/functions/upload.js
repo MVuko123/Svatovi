@@ -8,9 +8,11 @@ export async function handler(event) {
   const cloudName = "dsc3azbea";
   const uploadPreset = "YOUR_UPLOAD_PRESET";
 
-  // Kreiramo standardni FormData bez polyfill-a
+  // Koristimo Buffer umjesto fetch-blob za kompatibilnost
+  const fileBuffer = Buffer.from(event.body);
+
   const formData = new FormData();
-  formData.append("file", event.body);
+  formData.append("file", fileBuffer);
   formData.append("upload_preset", uploadPreset);
 
   try {
