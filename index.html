@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Send Images via Email</title>
+  <title>Send Image Links via Email</title>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     (function(){
@@ -13,6 +13,8 @@
     body {
       font-family: Arial, sans-serif;
       padding: 2rem;
+      max-width: 600px;
+      margin: auto;
     }
     input[type="file"] {
       margin-bottom: 1rem;
@@ -48,23 +50,37 @@
         return;
       }
 
-      const promises = Array.from(files).map(file => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(`<img src="${reader.result}" style="max-width:100%;"><br>`);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+      statusMsg.innerText = "Uploading images...";
+      statusMsg.style.color = "black";
+
+      const uploadPromises = Array.from(files).map(file => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        return fetch("https://file.io/?expires=1d", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => data.link ? data.link : null);
       });
 
-      Promise.all(promises).then(base64Images => {
+      Promise.all(uploadPromises).then(links => {
+        const validLinks = links.filter(link => link !== null);
+
+        if (!validLinks.length) {
+          statusMsg.innerText = "❌ Failed to upload images.";
+          statusMsg.style.color = "red";
+          return;
+        }
+
         const emailParams = {
-          images: base64Images.join("<br>")
+          images: validLinks.map(link => `<a href="${link}" target="_blank">${link}</a>`).join("<br>")
         };
 
         emailjs.send("service_anlae55", "template_xxka83q", emailParams)
           .then(() => {
-            statusMsg.innerText = "✅ Email sent successfully!";
+            statusMsg.innerText = "✅ Email with image links sent successfully!";
             statusMsg.style.color = "green";
           }, (error) => {
             console.error(error);
