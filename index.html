@@ -6,7 +6,7 @@
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init("g42tnmFpURrlkWGUF"); // Your public key
+      emailjs.init("g42tnmFpURrlkWGUF"); // Your EmailJS public key
     })();
   </script>
   <style>
@@ -41,7 +41,7 @@
   <script>
     const statusMsg = document.getElementById("statusMsg");
 
-    document.getElementById("emailForm").addEventListener("submit", function(event) {
+    document.getElementById("emailForm").addEventListener("submit", async function(event) {
       event.preventDefault();
 
       const files = document.getElementById('fileInput').files;
@@ -57,37 +57,47 @@
         const formData = new FormData();
         formData.append("file", file);
 
-        return fetch("https://file.io/?expires=1d", {
+        return fetch("https://store1.gofile.io/uploadFile", {
           method: "POST",
           body: formData
         })
         .then(res => res.json())
-        .then(data => data.link ? data.link : null);
+        .then(data => {
+          if (data.status === "ok") {
+            return data.data.downloadPage;
+          } else {
+            console.error(data);
+            return null;
+          }
+        })
+        .catch(err => {
+          console.error("Upload failed:", err);
+          return null;
+        });
       });
 
-      Promise.all(uploadPromises).then(links => {
-        const validLinks = links.filter(link => link !== null);
+      const links = await Promise.all(uploadPromises);
+      const validLinks = links.filter(link => link);
 
-        if (!validLinks.length) {
-          statusMsg.innerText = "❌ Failed to upload images.";
+      if (!validLinks.length) {
+        statusMsg.innerText = "❌ Failed to upload images.";
+        statusMsg.style.color = "red";
+        return;
+      }
+
+      const emailParams = {
+        images: validLinks.map(link => `<a href="${link}" target="_blank">${link}</a>`).join("<br>")
+      };
+
+      emailjs.send("service_anlae55", "template_xxka83q", emailParams)
+        .then(() => {
+          statusMsg.innerText = "✅ Email with image links sent successfully!";
+          statusMsg.style.color = "green";
+        }, (error) => {
+          console.error(error);
+          statusMsg.innerText = "❌ Failed to send email.";
           statusMsg.style.color = "red";
-          return;
-        }
-
-        const emailParams = {
-          images: validLinks.map(link => `<a href="${link}" target="_blank">${link}</a>`).join("<br>")
-        };
-
-        emailjs.send("service_anlae55", "template_xxka83q", emailParams)
-          .then(() => {
-            statusMsg.innerText = "✅ Email with image links sent successfully!";
-            statusMsg.style.color = "green";
-          }, (error) => {
-            console.error(error);
-            statusMsg.innerText = "❌ Failed to send email.";
-            statusMsg.style.color = "red";
-          });
-      });
+        });
     });
   </script>
 </body>
