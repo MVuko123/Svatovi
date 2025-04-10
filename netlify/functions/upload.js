@@ -2,17 +2,17 @@ import fetch from "node-fetch";
 
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method Not Allowed" })
+    };
   }
 
   const cloudName = "dsc3azbea";
   const uploadPreset = "YOUR_UPLOAD_PRESET";
 
-  // Koristimo Buffer umjesto fetch-blob za kompatibilnost
-  const fileBuffer = Buffer.from(event.body);
-
   const formData = new FormData();
-  formData.append("file", fileBuffer);
+  formData.append("file", event.body);
   formData.append("upload_preset", uploadPreset);
 
   try {
