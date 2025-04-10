@@ -53,13 +53,15 @@
   <script>
     function autoSubmit(input) {
       let formData = new FormData(document.querySelector('form'));
-    
+
       fetch(document.querySelector('form').action, {
         method: "POST",
         body: formData
       }).then(response => {
         if (response.ok) {
-          location.reload(); // Osvježi stranicu nakon uspješnog slanja
+          alert("Slika uspješno poslana!");
+          input.value = ""; // Resetira input polje kako bi se prisililo novo snimanje
+          location.reload(); // Osvježi stranicu
         } else {
           alert("Došlo je do pogreške pri slanju.");
         }
