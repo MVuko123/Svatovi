@@ -52,9 +52,20 @@
 
   <script>
     function autoSubmit(input) {
-      setTimeout(function() { // Mali odmak za bolju kompatibilnost
-        document.querySelector('form').submit();
-      }, 500);
+      let formData = new FormData(document.querySelector('form'));
+    
+      fetch(document.querySelector('form').action, {
+        method: "POST",
+        body: formData
+      }).then(response => {
+        if (response.ok) {
+          location.reload(); // Osvježi stranicu nakon uspješnog slanja
+        } else {
+          alert("Došlo je do pogreške pri slanju.");
+        }
+      }).catch(error => {
+        alert("Greška: " + error);
+      });
     }
 
     document.getElementById('camera').addEventListener('change', function() {
