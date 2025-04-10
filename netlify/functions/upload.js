@@ -1,7 +1,6 @@
 const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
-  // Provjera da zahtjev koristi POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -9,7 +8,7 @@ exports.handler = async (event) => {
     };
   }
 
-  // Provjera da tijelo zahtjeva postoji
+  // Provjera je li tijelo zahtjeva prazno
   if (!event.body) {
     return {
       statusCode: 400,
@@ -21,17 +20,14 @@ exports.handler = async (event) => {
   const uploadPreset = "YOUR_UPLOAD_PRESET";
 
   try {
-    // Kreiranje FormData za slanje slike
+    const fileBuffer = Buffer.from(event.body, "base64"); // Pretvaramo tijelo zahtjeva u binarne podatke
+
     const formData = new FormData();
-    formData.append("file", event.body);
+    formData.append("file", fileBuffer, "image.jpg"); // Dodajemo ime datoteke
     formData.append("upload_preset", uploadPreset);
 
-    // Slanje podataka na Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
-      headers: {
-        "Content-Type": "multipart/form-data"
-      },
       body: formData
     });
 
@@ -39,7 +35,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: response.ok ? 200 : 500,
-      body: JSON.stringify({ message: response.ok ? "Slika uspješno poslana!" : "Greška pri slanju slike." })
+      body: JSON.stringify({ message: response.ok ? "Slika uspješno poslana!" : "Greška pri slanju slike.", url: data.secure_url })
     };
   } catch (error) {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
