@@ -1,9 +1,8 @@
 {
-  "name": "svatovi",
+  "name": "wedding-file-upload",
   "version": "1.0.0",
-  "description": "Slanje slika na Netlify funkciju",
-  "type": "module",
   "dependencies": {
-    "node-fetch": "^2.7.0"
+    "nodemailer": "^6.7.2",
+    "formidable": "^2.0.1"
   }
 }
