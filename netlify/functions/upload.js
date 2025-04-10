@@ -8,7 +8,6 @@ exports.handler = async (event) => {
     };
   }
 
-  // Provjera je li tijelo zahtjeva prazno
   if (!event.body) {
     return {
       statusCode: 400,
@@ -17,13 +16,11 @@ exports.handler = async (event) => {
   }
 
   const cloudName = "dsc3azbea";
-  const uploadPreset = "YOUR_UPLOAD_PRESET";
+  const uploadPreset = "ml_default"; // Zamijeni s točnim nazivom tvog upload preseta!
 
   try {
-    const fileBuffer = Buffer.from(event.body, "base64"); // Pretvaramo tijelo zahtjeva u binarne podatke
-
     const formData = new FormData();
-    formData.append("file", fileBuffer, "image.jpg"); // Dodajemo ime datoteke
+    formData.append("file", event.body);
     formData.append("upload_preset", uploadPreset);
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
