@@ -46,17 +46,22 @@
 
       const formData = new FormData();
       for (let file of files) {
-        formData.append("file", file); // Promijenili smo 'images' u 'file'
+        formData.append("file", file);
       }
 
       try {
         const response = await fetch("/.netlify/functions/upload", {
           method: "POST",
+          headers: {
+            "Content-Type": "multipart/form-data"
+          },
           body: formData
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-          alert("Sve slike su uspješno poslane!");
+          alert("Sve slike su uspješno poslane! URL: " + data.url);
         } else {
           alert("Došlo je do pogreške pri slanju.");
         }
@@ -64,6 +69,6 @@
         alert("Greška: " + error.message);
       }
     }
-  </script>
+</script>
 </body>
 </html>
