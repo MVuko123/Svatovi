@@ -16,23 +16,31 @@ exports.handler = async (event) => {
   }
 
   const cloudName = "dsc3azbea";
-  const uploadPreset = "ml_default"; // Zamijeni s točnim nazivom tvog upload preseta!
+  const uploadPreset = "ml_default"; // Zamijeni s točnim upload presetom!
 
   try {
-    const formData = new FormData();
-    formData.append("file", event.body);
-    formData.append("upload_preset", uploadPreset);
+    // Pretvaramo body u base64 string
+    const fileData = event.body;
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
-      body: formData
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        file: `data:image/jpeg;base64,${fileData}`, // Slanje base64 stringa
+        upload_preset: uploadPreset
+      })
     });
 
     const data = await response.json();
 
     return {
       statusCode: response.ok ? 200 : 500,
-      body: JSON.stringify({ message: response.ok ? "Slika uspješno poslana!" : "Greška pri slanju slike.", url: data.secure_url })
+      body: JSON.stringify({ 
+        message: response.ok ? "Slika uspješno poslana!" : "Greška pri slanju slike.",
+        url: data.secure_url 
+      })
     };
   } catch (error) {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
