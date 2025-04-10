@@ -11,13 +11,13 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({ error: "No files uploaded." })
     };
   }
-  
-  // Send the files via email
+
+  // Create the transporter to send the email (using environment variables for security)
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'youremail@example.com',
-      pass: 'yourpassword' // Use environment variables for security
+      user: process.env.EMAIL_USER,  // Use your email stored in environment variables
+      pass: process.env.EMAIL_PASS   // Use your email password stored in environment variables
     }
   });
 
@@ -27,15 +27,17 @@ exports.handler = async function(event, context) {
   }));
 
   const mailOptions = {
-    from: 'youremail@example.com',
-    to: 'youremail@example.com',
+    from: 'svatovi.juraj@gmail.com',  // Sender's email (your email)
+    to: 'svatovi.juraj@gmail.com',    // Recipient's email (can be your own email or someone else)
     subject: 'Wedding File Uploads',
     text: 'Please find the attached files.',
     attachments: attachments
   };
 
   try {
+    // Send the email
     await transporter.sendMail(mailOptions);
+
     return {
       statusCode: 200,
       body: JSON.stringify({ message: "Files uploaded and email sent!" })
