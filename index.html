@@ -21,6 +21,9 @@
       padding: 0.5rem 1rem;
       cursor: pointer;
     }
+    #statusMsg {
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -59,7 +62,7 @@
           images: base64Images.join("<br>")
         };
 
-        emailjs.send("service_anlae55", "service_anlae55", emailParams)
+        emailjs.send("service_anlae55", "template_xxka83q", emailParams)
           .then(() => {
             statusMsg.innerText = "✅ Email sent successfully!";
             statusMsg.style.color = "green";
