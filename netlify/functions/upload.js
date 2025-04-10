@@ -1,58 +1,80 @@
-const AWS = require('aws-sdk');
+const busboy = require('busboy');
+const fs = require('fs');
+const path = require('path');
 const nodemailer = require('nodemailer');
-const Busboy = require('busboy');
+const sendGridMail = require('@sendgrid/mail');
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: "Only POST requests allowed" }) };
-  }
+sendGridMail.setApiKey('YOUR_SENDGRID_API_KEY');  // Postavi svoju SendGrid API ključ
 
-  try {
-    const busboy = Busboy({ headers: event.headers });
-    const fileData = [];
+const emailTo = 'primatelj@example.com'; // Email na koji šalješ
 
+// Funkcija za slanje emaila
+const sendEmailWithAttachments = async (attachments) => {
+    const msg = {
+        to: emailTo,
+        from: 'svatovi.juraj@gmail.com', // Tvoj email iz kojeg šalješ
+        subject: 'Slike od korisnika',
+        text: 'Ovdje su slike koje je korisnik poslao.',
+        attachments: attachments,
+    };
+
+    try {
+        await sendGridMail.send(msg);
+        console.log('Email poslan');
+    } catch (error) {
+        console.error('Greška prilikom slanja emaila: ', error);
+    }
+};
+
+module.exports.handler = async (event, context) => {
     return new Promise((resolve, reject) => {
-      busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-        let buffer = [];
-        file.on('data', (data) => buffer.push(data));
-        file.on('end', () => fileData.push({ filename, buffer: Buffer.concat(buffer), mimetype }));
-      });
+        const bb = busboy({ headers: event.headers });
+        let attachments = [];
+        
+        bb.on('file', (fieldname, file, filename, encoding, mimetype) => {
+            const filePath = path.join('/tmp', filename); // Spremi u privremeni direktorij
+            const writeStream = fs.createWriteStream(filePath);
 
-      busboy.on('finish', async () => {
-        if (fileData.length === 0) {
-          return resolve({ statusCode: 400, body: JSON.stringify({ error: "No files uploaded." }) });
-        }
+            file.pipe(writeStream);
 
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-          },
+            writeStream.on('close', () => {
+                console.log(`Slika ${filename} je spremljena`);
+
+                // Spremi sliku kao privitak za slanje
+                attachments.push({
+                    filename: filename,
+                    type: mimetype,
+                    content: fs.readFileSync(filePath).toString('base64'),
+                    disposition: 'attachment',
+                });
+            });
         });
 
-        const attachments = fileData.map((file) => ({
-          filename: file.filename,
-          content: file.buffer,
-          contentType: file.mimetype,
-        }));
+        bb.on('finish', async () => {
+            if (attachments.length > 0) {
+                // Ako postoje privitci (slike), pošaljemo email
+                await sendEmailWithAttachments(attachments);
+                resolve({
+                    statusCode: 200,
+                    body: JSON.stringify({ message: 'Slike su poslane putem emaila!' }),
+                });
+            } else {
+                resolve({
+                    statusCode: 400,
+                    body: JSON.stringify({ error: 'Nema slika za slanje!' }),
+                });
+            }
+        });
 
-        const mailOptions = {
-          from: 'svatovi.juraj@gmail.com',
-          to: 'svatovi.juraj@gmail.com',
-          subject: 'Wedding Picture Uploads',
-          text: 'Please find the attached pictures.',
-          attachments,
-        };
+        bb.on('error', (error) => {
+            console.error('Greška u uploadu: ', error);
+            reject({
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Greška u obradi datoteka.' }),
+            });
+        });
 
-        await transporter.sendMail(mailOptions);
-        resolve({ statusCode: 200, body: JSON.stringify({ message: "Pictures uploaded and email sent!" }) });
-      });
-
-      busboy.end(Buffer.from(event.body, 'base64'));
+        // Početak obrade zahtjeva
+        bb.end(event.body);
     });
-  } catch (error) {
-    console.error("Error:", error);
-    return { statusCode: 500, body: JSON.stringify({ error: `Error: ${error.message}` }) };
-  }
 };
