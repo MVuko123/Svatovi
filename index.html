@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slanje slika za svatove</title>
+  <title>Pošalji slike za svatove</title>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     body {
@@ -31,13 +31,35 @@
       margin-bottom: 20px;
     }
 
-    input[type="file"] {
+    .custom-upload {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
       width: 100%;
-      padding: 15px;
-      font-size: 16px;
     }
 
-    button {
+    .custom-upload button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .custom-upload button:hover {
+      background-color: #1565c0;
+    }
+
+    #fileLabel {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .send-button {
       background-color: #ff4081;
       color: white;
       border: none;
@@ -49,27 +71,41 @@
       width: 100%;
     }
 
-    button:hover {
+    .send-button:hover {
       background-color: #e73370;
-    }
-
-    .note {
-      font-size: 14px;
-      color: #777;
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Pošaljite slike sa svatova</h2>
-    <input type="file" id="fileInput" accept="image/*" multiple capture="environment" />
-    <div class="note">Odaberite slike (možete više odjednom)</div>
-    <button onclick="sendImages()">Pošalji slike na e-mail</button>
+
+    <div class="custom-upload">
+      <button type="button" onclick="document.getElementById('fileInput').click()">
+        Odaberi slike
+      </button>
+      <span id="fileLabel">Nijedna slika nije odabrana</span>
+      <input type="file" id="fileInput" accept="image/*" multiple capture="environment" style="display: none;" />
+    </div>
+
+    <button class="send-button" onclick="sendImages()">Pošalji slike na e-mail</button>
   </div>
 
   <script>
-    emailjs.init("g42tnmFpURrlkWGUF"); // Public Key
+    emailjs.init("g42tnmFpURrlkWGUF"); // Tvoj public key
+
+    // Ažuriranje broja odabranih slika
+    document.getElementById("fileInput").addEventListener("change", function () {
+      const count = this.files.length;
+      const label = document.getElementById("fileLabel");
+      if (count === 0) {
+        label.textContent = "Nijedna slika nije odabrana";
+      } else if (count === 1) {
+        label.textContent = "1 slika odabrana";
+      } else {
+        label.textContent = `${count} slika odabrano`;
+      }
+    });
 
     async function sendImages() {
       const files = document.getElementById("fileInput").files;
