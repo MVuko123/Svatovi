@@ -2,7 +2,7 @@
   "name": "wedding-file-upload",
   "version": "1.0.0",
   "dependencies": {
-    "nodemailer": "^6.7.2",
-    "formidable": "^2.0.1"
+    "formidable": "^2.1.2",
+    "nodemailer": "^6.7.2"
   }
 }
