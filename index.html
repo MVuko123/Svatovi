@@ -50,9 +50,10 @@
   </form>
 
   <script>
+    // Show the number of selected files (optional, just to give feedback to the user)
     document.getElementById('upload').addEventListener('change', function() {
       if (this.files.length > 0) {
-        document.getElementById('uploadForm').submit();
+        console.log(`Selected files: ${this.files.length} file(s)`);
       }
     });
   </script>
