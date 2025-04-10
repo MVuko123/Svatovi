@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <title>Pošalji slike 📸</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f8f8f8;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .btn {
+      display: block;
+      margin: 20px auto;
+      padding: 15px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: #007f5f;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #005f44;
+    }
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>📸 Pošalji svoje slike sa svatova!</h1>
+  <p>Odaberi kameru ili galeriju:</p>
+
+  <form action="https://formsubmit.co/svatovi.juraj@gmail.com" method="POST" enctype="multipart/form-data">
+    <input type="file" id="camera" name="upload" accept="image/*" capture="environment" required>
+    <input type="file" id="upload" name="upload" accept="image/*" required>
+
+    <button class="btn" type="button" onclick="document.getElementById('camera').click()">📷 Kamera</button>
+    <button class="btn" type="button" onclick="document.getElementById('upload').click()">⬆️ Galerija</button>
+
+    <br><br>
+    <button class="btn" type="submit">✅ Pošalji</button>
+
+    <!-- Hidden postavke -->
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_subject" value="📸 Nove slike sa svatova!">
+  </form>
+
+  <script>
+    // automatski pošalji čim korisnik odabere sliku
+    document.getElementById('camera').onchange = function() {
+      document.querySelector('form').submit();
+    };
+    document.getElementById('upload').onchange = function() {
+      document.querySelector('form').submit();
+    };
+  </script>
+</body>
+</html>
