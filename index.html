@@ -1,15 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding File Upload</title>
+  <meta charset="UTF-8">
+  <title>Send Images via Email</title>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init("g42tnmFpURrlkWGUF"); // Your public key
+    })();
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+    input[type="file"] {
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>Upload Your Files for the Wedding</h1>
-   <form action="/.netlify/functions/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="files[]" multiple accept="image/*"><br><br>
-        <input type="submit" value="Upload Pictures">
-    </form>
+  <h2>Upload and Send Images via Email</h2>
+
+  <form id="emailForm">
+    <input type="file" id="fileInput" multiple accept="image/*"><br>
+    <button type="submit">Send Email</button>
+  </form>
+
+  <p id="statusMsg"></p>
+
+  <script>
+    const statusMsg = document.getElementById("statusMsg");
+
+    document.getElementById("emailForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const files = document.getElementById('fileInput').files;
+      if (!files.length) {
+        alert("Please select at least one image.");
+        return;
+      }
+
+      const promises = Array.from(files).map(file => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(`<img src="${reader.result}" style="max-width:100%;"><br>`);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(promises).then(base64Images => {
+        const emailParams = {
+          images: base64Images.join("<br>")
+        };
+
+        emailjs.send("service_anlae55", "service_anlae55", emailParams)
+          .then(() => {
+            statusMsg.innerText = "✅ Email sent successfully!";
+            statusMsg.style.color = "green";
+          }, (error) => {
+            console.error(error);
+            statusMsg.innerText = "❌ Failed to send email.";
+            statusMsg.style.color = "red";
+          });
+      });
+    });
+  </script>
 </body>
 </html>
