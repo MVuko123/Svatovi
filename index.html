@@ -2,6 +2,7 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pošalji slike 📸</title>
   <style>
     body {
@@ -16,10 +17,10 @@
     .btn {
       display: block;
       margin: 20px auto;
-      padding: 15px 25px;
-      font-size: 18px;
+      padding: 25px 35px; /* Bigger buttons */
+      font-size: 24px; /* Larger text */
       border: none;
-      border-radius: 10px;
+      border-radius: 15px; /* Slightly more rounded */
       background-color: #007f5f;
       color: white;
       cursor: pointer;
@@ -53,7 +54,7 @@
   </form>
 
   <script>
-    // automatski pošalji čim korisnik odabere sliku
+    // Automatski pošalji čim korisnik odabere sliku
     document.getElementById('camera').onchange = function() {
       document.querySelector('form').submit();
     };
