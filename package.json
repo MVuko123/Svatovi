@@ -2,6 +2,7 @@
   "name": "wedding-file-upload",
   "version": "1.0.0",
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "busboy": "^1.6.0",
     "formidable": "^2.1.2",
     "nodemailer": "^6.7.2"
