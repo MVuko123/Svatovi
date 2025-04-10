@@ -2,8 +2,8 @@ const nodemailer = require('nodemailer');
 const formidable = require('formidable');
 const fs = require('fs');
 
-exports.handler = async (event, context) => {
-  // Ensure the HTTP method is POST
+exports.handler = async (event) => {
+  // Ensure the request is POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -11,21 +11,24 @@ exports.handler = async (event, context) => {
     };
   }
 
-  // Create a new formidable IncomingForm instance
-  const form = new formidable.IncomingForm();
-
-  // Return a Promise to handle form parsing
-  const parseFormData = new Promise((resolve, reject) => {
-    form.parse(event, (err, fields, files) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ fields, files });
-      }
-    });
-  });
-
   try {
+    // Convert event body from Base64 to buffer
+    const bodyBuffer = Buffer.from(event.body, "base64");
+
+    // Create a new formidable IncomingForm instance
+    const form = new formidable.IncomingForm();
+
+    // Manually parse the form data using formidable
+    const parseFormData = new Promise((resolve, reject) => {
+      form.parse({ headers: event.headers, body: bodyBuffer }, (err, fields, files) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ fields, files });
+        }
+      });
+    });
+
     const { fields, files } = await parseFormData;
 
     // Ensure files were uploaded
@@ -36,31 +39,31 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Create a transporter to send the email
+    // Create a transporter for sending emails
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER, // Set your Gmail user here
-        pass: process.env.EMAIL_PASS, // Set your Gmail password here
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // Prepare the attachments array for email
     const attachments = Object.keys(files).map((fileKey) => ({
       filename: files[fileKey].originalFilename,
-      path: files[fileKey].filepath,  // Path where the file is saved
+      path: files[fileKey].filepath,
     }));
 
     // Set up the email options
     const mailOptions = {
-      from: 'svatovi.juraj@gmail.com', // Sender's email
-      to: 'svatovi.juraj@gmail.com',   // Recipient's email
+      from: 'svatovi.juraj@gmail.com',
+      to: 'svatovi.juraj@gmail.com',
       subject: 'Wedding Picture Uploads',
       text: 'Please find the attached pictures.',
-      attachments: attachments,
+      attachments,
     };
 
-    // Send the email with the uploaded pictures
+    // Send the email
     await transporter.sendMail(mailOptions);
 
     return {
