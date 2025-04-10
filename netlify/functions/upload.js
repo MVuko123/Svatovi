@@ -1,5 +1,4 @@
-import fetch from "node-fetch"; // Koristimo ES module
-import { Blob } from "fetch-blob"; // Osiguravamo podršku za blob podatke
+import fetch from "node-fetch";
 
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
@@ -9,8 +8,9 @@ export async function handler(event) {
   const cloudName = "dsc3azbea";
   const uploadPreset = "YOUR_UPLOAD_PRESET";
 
+  // Kreiramo standardni FormData bez polyfill-a
   const formData = new FormData();
-  formData.append("file", new Blob([event.body])); // Koristimo Blob za kompatibilnost
+  formData.append("file", event.body);
   formData.append("upload_preset", uploadPreset);
 
   try {
