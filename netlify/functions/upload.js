@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export async function handler(event) {
+exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -12,7 +12,7 @@ export async function handler(event) {
   const uploadPreset = "YOUR_UPLOAD_PRESET";
 
   const formData = new FormData();
-  formData.append("file", event.body);
+  formData.append("file", event.body); // Osiguravamo da se podaci pravilno dodaju
   formData.append("upload_preset", uploadPreset);
 
   try {
@@ -30,4 +30,4 @@ export async function handler(event) {
   } catch (error) {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
-}
+};
