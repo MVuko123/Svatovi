@@ -44,23 +44,26 @@
     <button class="btn" type="button" onclick="document.getElementById('camera').click()">📷 Kamera</button>
     <button class="btn" type="button" onclick="document.getElementById('upload').click()">⬆️ Galerija</button>
 
-    <br><br>
-    <button class="btn" type="submit">✅ Pošalji</button>
-
     <!-- Skriveni podaci -->
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_subject" value="📸 Nove slike sa svatova!">
   </form>
 
-  <!--<script>
-    // Automatski pošalji čim korisnik odabere sliku
-    document.getElementById('camera').onchange = function() {
-      document.querySelector('form').submit();
-    };
-    document.getElementById('upload').onchange = function() {
-      document.querySelector('form').submit();
-    };
-  </script>-->
+  <script>
+    function autoSubmit(input) {
+      setTimeout(function() { // Mali odmak za bolju kompatibilnost
+        document.querySelector('form').submit();
+      }, 500);
+    }
+
+    document.getElementById('camera').addEventListener('change', function() {
+      autoSubmit(this);
+    });
+
+    document.getElementById('upload').addEventListener('change', function() {
+      autoSubmit(this);
+    });
+  </script>
 </body>
 </html>
