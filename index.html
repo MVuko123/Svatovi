@@ -51,28 +51,36 @@
   </form>
 
   <script>
+    //NOVO
     function autoSubmit(input) {
-      let formData = new FormData(document.querySelector('form'));
+      let files = input.files;
+      if (files.length === 0) return;
 
-      // Dodaj sve datoteke ako ih ima više
-      for (let i = 0; i < input.files.length; i++) {
-        formData.append("upload[]", input.files[i]);
+      let uploadedCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        let formData = new FormData();
+        formData.append("upload", files[i]);
+
+        fetch(document.querySelector('form').action, {
+          method: "POST",
+          body: formData
+        }).then(response => {
+          if (response.ok) {
+            uploadedCount++;
+            if (uploadedCount === files.length) {
+              alert("Sve slike su uspješno poslane!");
+              location.reload();
+            }
+          } else {
+            alert("Došlo je do pogreške pri slanju.");
+          }
+        }).catch(error => {
+          alert("Greška: " + error);
+        });
       }
 
-      fetch(document.querySelector('form').action, {
-        method: "POST",
-        body: formData
-      }).then(response => {
-        if (response.ok) {
-          alert("Slike uspješno poslane!");
-          input.value = ""; // Resetira input polje
-          location.reload(); // Osvježi stranicu
-        } else {
-          alert("Došlo je do pogreške pri slanju.");
-        }
-      }).catch(error => {
-        alert("Greška: " + error);
-      });
+      input.value = ""; // Resetira input polje
     }
 
     document.getElementById('camera').addEventListener('change', function() {
