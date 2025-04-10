@@ -1,104 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Send Image Links via Email</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload and Send Images</title>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+  <h2>Upload and Email Images</h2>
+  <input type="file" id="imageInput" accept="image/*" multiple />
+  <br><br>
+  <button onclick="sendEmail()">Send to Email</button>
+
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init("g42tnmFpURrlkWGUF"); // Your EmailJS public key
+      emailjs.init("g42tnmFpURrlkWGUF"); // your public key
     })();
-  </script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    input[type="file"] {
-      margin-bottom: 1rem;
-    }
-    button {
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-    }
-    #statusMsg {
-      margin-top: 1rem;
-    }
-  </style>
-</head>
-<body>
-  <h2>Upload and Send Images via Email</h2>
 
-  <form id="emailForm">
-    <input type="file" id="fileInput" multiple accept="image/*"><br>
-    <button type="submit">Send Email</button>
-  </form>
+    async function sendEmail() {
+      const input = document.getElementById('imageInput');
+      const files = input.files;
 
-  <p id="statusMsg"></p>
-
-  <script>
-    const statusMsg = document.getElementById("statusMsg");
-
-    document.getElementById("emailForm").addEventListener("submit", async function(event) {
-      event.preventDefault();
-
-      const files = document.getElementById('fileInput').files;
       if (!files.length) {
         alert("Please select at least one image.");
         return;
       }
 
-      statusMsg.innerText = "Uploading images...";
-      statusMsg.style.color = "black";
+      const base64Images = [];
 
-      const uploadPromises = Array.from(files).map(file => {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        return fetch("https://store1.gofile.io/uploadFile", {
-          method: "POST",
-          body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === "ok") {
-            return data.data.downloadPage;
-          } else {
-            console.error(data);
-            return null;
-          }
-        })
-        .catch(err => {
-          console.error("Upload failed:", err);
-          return null;
-        });
-      });
-
-      const links = await Promise.all(uploadPromises);
-      const validLinks = links.filter(link => link);
-
-      if (!validLinks.length) {
-        statusMsg.innerText = "❌ Failed to upload images.";
-        statusMsg.style.color = "red";
-        return;
+      for (const file of files) {
+        const base64 = await toBase64(file);
+        base64Images.push(`<img src="${base64}" style="max-width: 100%; max-height: 400px; margin-bottom: 20px;" />`);
       }
 
       const emailParams = {
-        images: validLinks.map(link => `<a href="${link}" target="_blank">${link}</a>`).join("<br>")
+        images: base64Images.join("<br>")
       };
 
       emailjs.send("service_anlae55", "template_xxka83q", emailParams)
-        .then(() => {
-          statusMsg.innerText = "✅ Email with image links sent successfully!";
-          statusMsg.style.color = "green";
-        }, (error) => {
-          console.error(error);
-          statusMsg.innerText = "❌ Failed to send email.";
-          statusMsg.style.color = "red";
-        });
-    });
+        .then(() => alert("Email sent successfully!"))
+        .catch((error) => alert("Failed to send email: " + error.text));
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+    }
   </script>
 </body>
 </html>
