@@ -1,60 +1,67 @@
 const nodemailer = require('nodemailer');
+const formidable = require('formidable');
 
 exports.handler = async function(event, context) {
-  // Check if the method is POST
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Only POST requests are accepted' }),
-    };
-  }
+  // Create a new promise to handle the form data asynchronously
+  const form = new formidable.IncomingForm();
 
-  // Access the multipart form data
-  const formData = JSON.parse(event.body); // You should access the form data here
-  
-  // Ensure files were uploaded
-  if (!formData || !formData.files) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "No files uploaded." }),
-    };
-  }
-
-  const files = formData.files;
-
-  // Create the transporter to send the email
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
+  // The promise will resolve with the form data when it's finished parsing
+  const parseFormData = new Promise((resolve, reject) => {
+    form.parse(event, (err, fields, files) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ fields, files });
+      }
+    });
   });
 
-  const attachments = Object.keys(files).map(file => ({
-    filename: files[file].name,
-    path: files[file].path,
-  }));
-
-  const mailOptions = {
-    from: 'svatovi.juraj@gmail.com',
-    to: 'svatovi.juraj@gmail.com',
-    subject: 'Wedding File Uploads',
-    text: 'Please find the attached files.',
-    attachments: attachments,
-  };
-
   try {
-    // Send the email
+    const { fields, files } = await parseFormData;
+
+    // Ensure files were uploaded
+    if (!files || Object.keys(files).length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "No files uploaded." }),
+      };
+    }
+
+    // Create the transporter to send the email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Prepare the image attachments
+    const attachments = Object.keys(files).map((fileKey) => ({
+      filename: files[fileKey].originalFilename,
+      path: files[fileKey].filepath,
+    }));
+
+    // Create the email options
+    const mailOptions = {
+      from: 'svatovi.juraj@gmail.com',
+      to: 'svatovi.juraj@gmail.com', // or another recipient email
+      subject: 'Wedding Picture Uploads',
+      text: 'Please find the attached pictures.',
+      attachments: attachments,
+    };
+
+    // Send the email with the uploaded images
     await transporter.sendMail(mailOptions);
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Files uploaded and email sent!" }),
+      body: JSON.stringify({ message: "Pictures uploaded and email sent!" }),
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Error sending email." }),
+      body: JSON.stringify({ error: `Error: ${error.message}` }),
     };
   }
 };
