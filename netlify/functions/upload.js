@@ -1,8 +1,9 @@
 const nodemailer = require('nodemailer');
 const formidable = require('formidable');
+const { parse } = require('querystring'); // for parsing form data
 
 exports.handler = async function(event, context) {
-  // Return an error if the HTTP method is not POST
+  // Ensure that the method is POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -10,10 +11,10 @@ exports.handler = async function(event, context) {
     };
   }
 
-  // Create a new formidable IncomingForm instance
+  // Create a new form to parse incoming data
   const form = new formidable.IncomingForm();
 
-  // Return a promise that resolves when the form parsing is complete
+  // Promise that handles the parsing
   const parseFormData = new Promise((resolve, reject) => {
     form.parse(event, (err, fields, files) => {
       if (err) {
@@ -44,7 +45,7 @@ exports.handler = async function(event, context) {
       },
     });
 
-    // Prepare the file attachments (images)
+    // Prepare the image attachments
     const attachments = Object.keys(files).map((fileKey) => ({
       filename: files[fileKey].originalFilename,
       path: files[fileKey].filepath,
@@ -53,7 +54,7 @@ exports.handler = async function(event, context) {
     // Create the email options
     const mailOptions = {
       from: 'svatovi.juraj@gmail.com',
-      to: 'svatovi.juraj@gmail.com',  // Change to your recipient email if necessary
+      to: 'svatovi.juraj@gmail.com',
       subject: 'Wedding Picture Uploads',
       text: 'Please find the attached pictures.',
       attachments: attachments,
