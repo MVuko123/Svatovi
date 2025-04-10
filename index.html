@@ -50,7 +50,7 @@
       }
 
       try {
-        const response = await fetch("/.netlify/functions/upload", {
+        const response = await fetch("/.netlify/functions/upload.js", {
           method: "POST",
           headers: {
             "Content-Type": "multipart/form-data"
