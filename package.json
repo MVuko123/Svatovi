@@ -4,7 +4,6 @@
   "description": "Slanje slika na Netlify funkciju",
   "type": "module",
   "dependencies": {
-    "fetch-blob": "^3.2.0",
     "node-fetch": "^2.7.0"
   }
 }
