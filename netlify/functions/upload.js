@@ -1,6 +1,7 @@
 const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
+  // Provjera da zahtjev koristi POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -8,16 +9,29 @@ exports.handler = async (event) => {
     };
   }
 
+  // Provjera da tijelo zahtjeva postoji
+  if (!event.body) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: "Bad Request: No file provided" })
+    };
+  }
+
   const cloudName = "dsc3azbea";
   const uploadPreset = "YOUR_UPLOAD_PRESET";
 
-  const formData = new FormData();
-  formData.append("file", event.body); // Osiguravamo da se podaci pravilno dodaju
-  formData.append("upload_preset", uploadPreset);
-
   try {
+    // Kreiranje FormData za slanje slike
+    const formData = new FormData();
+    formData.append("file", event.body);
+    formData.append("upload_preset", uploadPreset);
+
+    // Slanje podataka na Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data"
+      },
       body: formData
     });
 
