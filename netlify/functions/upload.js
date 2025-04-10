@@ -2,10 +2,18 @@ const nodemailer = require('nodemailer');
 const formidable = require('formidable');
 
 exports.handler = async function(event, context) {
-  // Create a new promise to handle the form data asynchronously
+  // Return an error if the HTTP method is not POST
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Only POST requests are accepted" }),
+    };
+  }
+
+  // Create a new formidable IncomingForm instance
   const form = new formidable.IncomingForm();
 
-  // The promise will resolve with the form data when it's finished parsing
+  // Return a promise that resolves when the form parsing is complete
   const parseFormData = new Promise((resolve, reject) => {
     form.parse(event, (err, fields, files) => {
       if (err) {
@@ -19,7 +27,7 @@ exports.handler = async function(event, context) {
   try {
     const { fields, files } = await parseFormData;
 
-    // Ensure files were uploaded
+    // Check if files were uploaded
     if (!files || Object.keys(files).length === 0) {
       return {
         statusCode: 400,
@@ -36,7 +44,7 @@ exports.handler = async function(event, context) {
       },
     });
 
-    // Prepare the image attachments
+    // Prepare the file attachments (images)
     const attachments = Object.keys(files).map((fileKey) => ({
       filename: files[fileKey].originalFilename,
       path: files[fileKey].filepath,
@@ -45,13 +53,13 @@ exports.handler = async function(event, context) {
     // Create the email options
     const mailOptions = {
       from: 'svatovi.juraj@gmail.com',
-      to: 'svatovi.juraj@gmail.com', // or another recipient email
+      to: 'svatovi.juraj@gmail.com',  // Change to your recipient email if necessary
       subject: 'Wedding Picture Uploads',
       text: 'Please find the attached pictures.',
       attachments: attachments,
     };
 
-    // Send the email with the uploaded images
+    // Send the email with the uploaded files
     await transporter.sendMail(mailOptions);
 
     return {
