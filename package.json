@@ -1,5 +1,4 @@
 {
-  {
   "name": "svatovi",
   "version": "1.0.0",
   "description": "Slanje slika na Netlify funkciju",
@@ -9,3 +8,7 @@
     "node-fetch": "^3.3.2"
   }
 }
+
+
+
+
