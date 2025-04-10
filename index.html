@@ -7,55 +7,63 @@
   <style>
     body {
       font-family: sans-serif;
-      background-color: #f8f8f8;
       text-align: center;
+      background-color: #f8f8f8;
       padding: 40px;
     }
     h1 {
-      margin-bottom: 10px;
-    }
-    .btn {
-      display: block;
-      margin: 20px auto;
-      padding: 20px 30px;
-      font-size: 20px;
-      border: none;
-      border-radius: 10px;
-      background-color: #007f5f;
-      color: white;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background-color: #005f44;
+      margin-bottom: 20px;
     }
     input[type="file"] {
-      display: none;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007f5f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005f44;
     }
   </style>
 </head>
 <body>
   <h1>📸 Pošalji slike sa svatova!</h1>
-  <p>Odaberi kameru ili galeriju:</p>
-
-  <form id="uploadForm" action="https://formsubmit.co/svatovi.juraj@gmail.com" method="POST" enctype="multipart/form-data">
-    <input type="file" id="upload" name="upload[]" accept="image/*" multiple required>
-
-    <button class="btn" type="button" onclick="document.getElementById('upload').click()">⬆️ Odaberi slike</button>
-    <button class="btn" type="submit">🚀 Pošalji sve slike</button>
-
-    <!-- Skriveni podaci -->
-    <input type="hidden" name="_captcha" value="false">
-    <input type="hidden" name="_template" value="table">
-    <input type="hidden" name="_subject" value="📸 Nove slike sa svatova!">
-  </form>
+  <input type="file" id="imageUpload" accept="image/*" multiple>
+  <button onclick="uploadImages()">Pošalji slike</button>
 
   <script>
-    // Show the number of selected files (optional, just to give feedback to the user)
-    document.getElementById('upload').addEventListener('change', function() {
-      if (this.files.length > 0) {
-        console.log(`Selected files: ${this.files.length} file(s)`);
+    async function uploadImages() {
+      const files = document.getElementById("imageUpload").files;
+      if (files.length === 0) {
+        alert("Molim odaberite slike!");
+        return;
       }
-    });
+
+      const formData = new FormData();
+      for (let file of files) {
+        formData.append("images", file);
+      }
+
+      try {
+        const response = await fetch("/.netlify/functions/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        if (response.ok) {
+          alert("Sve slike su uspješno poslane!");
+        } else {
+          alert("Došlo je do pogreške pri slanju.");
+        }
+      } catch (error) {
+        alert("Greška: " + error.message);
+      }
+    }
   </script>
 </body>
 </html>
