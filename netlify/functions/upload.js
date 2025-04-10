@@ -1,16 +1,16 @@
-const fetch = require("node-fetch");
+import fetch from "node-fetch"; // Koristimo ES module
+import { Blob } from "fetch-blob"; // Osiguravamo podršku za blob podatke
 
-exports.handler = async (event) => {
+export async function handler(event) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  const cloudName = "dsc3azbea"; // Dodao tvoj Cloudinary cloud name
-  const apiKey = "914272864315586"; // Dodao tvoj API ključ
-  const uploadPreset = "YOUR_UPLOAD_PRESET"; // Ovo trebaš kreirati u Cloudinary Dashboardu
+  const cloudName = "dsc3azbea";
+  const uploadPreset = "YOUR_UPLOAD_PRESET";
 
   const formData = new FormData();
-  formData.append("file", event.body);
+  formData.append("file", new Blob([event.body])); // Koristimo Blob za kompatibilnost
   formData.append("upload_preset", uploadPreset);
 
   try {
@@ -21,15 +21,11 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
-    if (response.ok) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ url: data.secure_url })
-      };
-    } else {
-      return { statusCode: 500, body: JSON.stringify({ error: "Greška pri slanju slika." }) };
-    }
+    return {
+      statusCode: response.ok ? 200 : 500,
+      body: JSON.stringify({ message: response.ok ? "Slika uspješno poslana!" : "Greška pri slanju slike." })
+    };
   } catch (error) {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
-};
+}
