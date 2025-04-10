@@ -1,48 +1,44 @@
-const fetch = require("node-fetch");
+const nodemailer = require('nodemailer');
+const formidable = require('formidable');
+const fs = require('fs');
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed" })
-    };
-  }
+exports.handler = async function(event, context) {
+  const form = new formidable.IncomingForm();
+  
+  // Parse the uploaded files
+  return new Promise((resolve, reject) => {
+    form.parse(event.body, (err, fields, files) => {
+      if (err) {
+        reject({ statusCode: 500, body: 'Error parsing form' });
+      }
+      
+      // Create a nodemailer transporter for Gmail (replace with your email details)
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'svatovi.juraj@gmail.com',
+          pass: 'A12345678b#' // Use environment variables for better security
+        }
+      });
 
-  if (!event.body) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "Bad Request: No file provided" })
-    };
-  }
+      const mailOptions = {
+        from: 'svatovi.juraj@gmail.com',
+        to: 'svatovi.juraj@gmail.com',
+        subject: 'Wedding File Uploads',
+        text: 'Please find the attached files.',
+        attachments: Object.keys(files).map(key => ({
+          filename: files[key].name,
+          path: files[key].path
+        }))
+      };
 
-  const cloudName = "dsc3azbea";
-  const uploadPreset = "ml_default"; // Zamijeni s točnim upload presetom!
-
-  try {
-    // Pretvaramo body u base64 string
-    const fileData = event.body;
-
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        file: `data:image/jpeg;base64,${fileData}`, // Slanje base64 stringa
-        upload_preset: uploadPreset
-      })
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          reject({ statusCode: 500, body: 'Error sending email' });
+        } else {
+          resolve({ statusCode: 200, body: 'Files uploaded successfully!' });
+        }
+      });
     });
-
-    const data = await response.json();
-
-    return {
-      statusCode: response.ok ? 200 : 500,
-      body: JSON.stringify({ 
-        message: response.ok ? "Slika uspješno poslana!" : "Greška pri slanju slike.",
-        url: data.secure_url 
-      })
-    };
-  } catch (error) {
-    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
-  }
+  });
 };
