@@ -1,74 +1,15 @@
 <!DOCTYPE html>
-<html lang="hr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pošalji slike 📸</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #f8f8f8;
-      padding: 40px;
-    }
-    h1 {
-      margin-bottom: 20px;
-    }
-    input[type="file"] {
-      margin-bottom: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007f5f;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #005f44;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding File Upload</title>
 </head>
 <body>
-  <h1>📸 Pošalji slike sa svatova!</h1>
-  <input type="file" id="imageUpload" accept="image/*" multiple>
-  <button onclick="uploadImages()">Pošalji slike</button>
-
-  <script>
-    async function uploadImages() {
-      const files = document.getElementById("imageUpload").files;
-      if (files.length === 0) {
-        alert("Molim odaberite slike!");
-        return;
-      }
-
-      const formData = new FormData();
-      for (let file of files) {
-        formData.append("file", file);
-      }
-
-      try {
-        const response = await fetch("/.netlify/functions/upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": "multipart/form-data"
-          },
-          body: formData
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          alert("Sve slike su uspješno poslane! URL: " + data.url);
-        } else {
-          alert("Došlo je do pogreške pri slanju.");
-        }
-      } catch (error) {
-        alert("Greška: " + error.message);
-      }
-    }
-</script>
+    <h1>Upload Your Files for the Wedding</h1>
+    <form action="/.netlify/functions/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="files[]" multiple><br><br>
+        <input type="submit" value="Upload Files">
+    </form>
 </body>
 </html>
