@@ -17,10 +17,10 @@
     .btn {
       display: block;
       margin: 20px auto;
-      padding: 25px 35px;
-      font-size: 24px;
+      padding: 20px 30px;
+      font-size: 20px;
       border: none;
-      border-radius: 15px;
+      border-radius: 10px;
       background-color: #007f5f;
       color: white;
       cursor: pointer;
@@ -34,15 +34,14 @@
   </style>
 </head>
 <body>
-  <h1>📸 Pošalji svoje slike sa svatova!</h1>
+  <h1>📸 Pošalji slike sa svatova!</h1>
   <p>Odaberi kameru ili galeriju:</p>
 
-  <form action="https://formsubmit.co/svatovi.juraj@gmail.com" method="POST" enctype="multipart/form-data">
-    <input type="file" id="camera" name="upload[]" accept="image/*" required>
+  <form id="uploadForm" action="https://formsubmit.co/svatovi.juraj@gmail.com" method="POST" enctype="multipart/form-data">
     <input type="file" id="upload" name="upload[]" accept="image/*" multiple required>
 
-    <button class="btn" type="button" onclick="document.getElementById('camera').click()">📷 Kamera</button>
-    <button class="btn" type="button" onclick="document.getElementById('upload').click()">⬆️ Galerija</button>
+    <button class="btn" type="button" onclick="document.getElementById('upload').click()">⬆️ Odaberi slike</button>
+    <button class="btn" type="submit">🚀 Pošalji sve slike</button>
 
     <!-- Skriveni podaci -->
     <input type="hidden" name="_captcha" value="false">
@@ -51,44 +50,10 @@
   </form>
 
   <script>
-    //NOVO
-    function autoSubmit(input) {
-      let files = input.files;
-      if (files.length === 0) return;
-
-      let uploadedCount = 0;
-
-      for (let i = 0; i < files.length; i++) {
-        let formData = new FormData();
-        formData.append("upload", files[i]);
-
-        fetch(document.querySelector('form').action, {
-          method: "POST",
-          body: formData
-        }).then(response => {
-          if (response.ok) {
-            uploadedCount++;
-            if (uploadedCount === files.length) {
-              alert("Sve slike su uspješno poslane!");
-              location.reload();
-            }
-          } else {
-            alert("Došlo je do pogreške pri slanju.");
-          }
-        }).catch(error => {
-          alert("Greška: " + error);
-        });
-      }
-
-      input.value = ""; // Resetira input polje
-    }
-
-    document.getElementById('camera').addEventListener('change', function() {
-      autoSubmit(this);
-    });
-
     document.getElementById('upload').addEventListener('change', function() {
-      autoSubmit(this);
+      if (this.files.length > 0) {
+        document.getElementById('uploadForm').submit();
+      }
     });
   </script>
 </body>
