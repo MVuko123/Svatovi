@@ -92,17 +92,18 @@
 </head>
 <body>
   <div class="container">
-    <h2>Pošaljite slike sa svatova</h2>
+    <h2>📸 Pošaljite slike sa svatova</h2>
     <div class="upload-section">
-      <button type="button" onclick="document.getElementById('cameraInput').click()">Otvorite kameru</button>
+      <button type="button" onclick="document.getElementById('cameraInput').click()">📷 Otvorite kameru</button>
       <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" multiple />
 
-      <button type="button" onclick="document.getElementById('galleryInput').click()">Odaberite slike iz galerije</button>
+      <button type="button" onclick="document.getElementById('galleryInput').click()">🖼️ Odaberite slike iz galerije</button>
       <input type="file" id="galleryInput" accept="image/*" style="display: none;" multiple />
 
       <div id="fileStatus">Nijedna slika nije odabrana</div>
     </div>
-    <button class="send-button" onclick="sendImages()">Pošaljite slike na e-mail</button>
+
+    <button class="send-button" onclick="sendImages()">📤 Pošaljite slike na e-mail</button>
     <div class="loader" id="loader"></div>
     <div class="status-section" id="statusText"></div>
   </div>
