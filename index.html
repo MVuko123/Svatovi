@@ -16,7 +16,6 @@
       padding: 20px;
       margin: 0;
     }
-
     .container {
       background: #fff;
       padding: 30px;
@@ -27,16 +26,13 @@
       text-align: center;
       box-sizing: border-box;
     }
-
     h2 {
       margin-bottom: 20px;
       font-size: 20px;
     }
-
     input[type="file"] {
       display: none;
     }
-
     .btn {
       display: block;
       width: 100%;
@@ -49,15 +45,12 @@
       color: white;
       box-sizing: border-box;
     }
-
     .green {
       background-color: #28a745;
     }
-
     .blue {
       background-color: #007bff;
     }
-
     .status {
       margin-top: 20px;
       font-size: 16px;
@@ -85,10 +78,11 @@
   </div>
 
   <script>
+    // Set up EmailJS with your user ID
+    emailjs.init("g42tnmFpURrlkWGUF");
+
     const gofileToken = "wHpYGnHWgpdzgkD2uHNgHzTySVt6ZbnU";
     const folderName = "Svatovi_5_2025";
-
-    emailjs.init("g42tnmFpURrlkWGUF");
 
     const updateCount = () => {
       const c = document.getElementById("cameraInput").files.length;
@@ -100,9 +94,22 @@
     document.getElementById("cameraInput").addEventListener("change", updateCount);
     document.getElementById("uploadInput").addEventListener("change", updateCount);
 
+    // Helper function to parse JSON with error reporting
+    async function parseJSON(response) {
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error("Error parsing JSON: " + text);
+      }
+    }
+
     async function getServer() {
       const res = await fetch("https://api.gofile.io/getServer");
-      const data = await res.json();
+      const data = await parseJSON(res);
+      if (!data.data || !data.data.server) {
+        throw new Error("Neispravan odgovor sa getServer: " + JSON.stringify(data));
+      }
       return data.data.server;
     }
 
@@ -113,11 +120,11 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: gofileToken, folderName: folderName })
       });
-      const result = await res.json();
+      const result = await parseJSON(res);
       if (result.status === "ok") {
         return result.data.id;
       } else {
-        throw new Error("Greška pri kreiranju mape.");
+        throw new Error("Greška pri kreiranju mape: " + JSON.stringify(result));
       }
     }
 
@@ -131,12 +138,11 @@
         method: "POST",
         body: formData
       });
-
-      const result = await res.json();
+      const result = await parseJSON(res);
       if (result.status === "ok") {
         return result.data.downloadPage;
       } else {
-        throw new Error("Upload nije uspio.");
+        throw new Error("Upload nije uspio: " + JSON.stringify(result));
       }
     }
 
@@ -153,7 +159,6 @@
       const sendButton = document.getElementById("sendButton");
       sendButton.disabled = true;
       sendButton.innerText = "Slanje...";
-
       document.getElementById("status").innerText = "Slanje u tijeku...";
 
       try {
