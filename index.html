@@ -1,79 +1,109 @@
-<!DOCTYPE html><html lang="hr">
+<!DOCTYPE html>
+<html lang="hr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slanje slika sa svatova</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Svatovi - Slanje slika</title>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #f9f9f9;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background-color: #f9f9f9;
-      margin: 0;
-    }
-    .container {
-      max-width: 400px;
+      min-height: 100vh;
       padding: 20px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 12px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
       text-align: center;
     }
+
     h2 {
       margin-bottom: 20px;
     }
+
     input[type="file"] {
       display: none;
     }
-    label.custom-file {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #4caf50;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-    .button {
-      padding: 10px 20px;
+
+    .btn {
+      padding: 12px 20px;
       margin: 5px;
-      font-size: 16px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
+      color: white;
     }
-    .upload-btn { background-color: #2196f3; color: white; }
-    .camera-btn { background-color: #ff9800; color: white; }
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
+
+    .green {
+      background-color: #28a745;
+    }
+
+    .blue {
+      background-color: #007bff;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Pošalji slike sa svatova</h2><input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
-<input type="file" id="uploadInput" accept="image/*" multiple>
+    <h2>Pošalji slike sa svatova</h2>
 
-<label class="custom-file" for="cameraInput">Otvori kameru</label>
-<label class="custom-file" for="uploadInput">Odaberi slike</label>
+    <label class="btn green">
+      Otvori kameru
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple />
+    </label>
 
-<br/>
-<button class="button upload-btn" onclick="sendImages()">Pošalji slike</button>
-<div id="status"></div>
+    <label class="btn green">
+      Odaberi slike
+      <input type="file" id="uploadInput" accept="image/*" multiple />
+    </label>
 
-  </div>  <script>
-    emailjs.init("g42tnmFpURrlkWGUF"); // EmailJS Public Key
+    <br/>
 
+    <button class="btn blue" onclick="sendImages()">Pošalji slike</button>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
     const gofileToken = "wHpYGnHWgpdzgkD2uHNgHzTySVt6ZbnU";
     const folderName = "Svatovi_5_2025";
-    let folderId = null;
+
+    emailjs.init("g42tnmFpURrlkWGUF");
+
+    const updateCount = () => {
+      const c = document.getElementById("cameraInput").files.length;
+      const u = document.getElementById("uploadInput").files.length;
+      const total = c + u;
+      document.getElementById("status").innerText = total ? `Odabrano slika: ${total}` : "";
+    };
+
+    document.getElementById("cameraInput").addEventListener("change", updateCount);
+    document.getElementById("uploadInput").addEventListener("change", updateCount);
+
+    async function getServer() {
+      const res = await fetch("https://api.gofile.io/getServer");
+      const data = await res.json();
+      return data.data.server;
+    }
 
     async function createFolder() {
-      const res = await fetch("https://api.gofile.io/createFolder", {
+      const server = await getServer();
+      const res = await fetch(`https://${server}.gofile.io/createFolder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: gofileToken, folderName: folderName })
@@ -86,46 +116,62 @@
       }
     }
 
+    async function uploadFile(server, file, folderId) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("token", gofileToken);
+      formData.append("folderId", folderId);
+
+      const res = await fetch(`https://${server}.gofile.io/uploadFile`, {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+      if (result.status === "ok") {
+        return result.data.downloadPage;
+      } else {
+        throw new Error("Upload nije uspio.");
+      }
+    }
+
     async function sendImages() {
       const cameraFiles = document.getElementById("cameraInput").files;
       const uploadFiles = document.getElementById("uploadInput").files;
       const files = [...cameraFiles, ...uploadFiles];
 
-      if (!files.length) return alert("Molimo odaberite barem jednu sliku.");
+      if (!files.length) {
+        document.getElementById("status").innerText = "Molimo odaberite slike.";
+        return;
+      }
 
-      document.getElementById("status").innerText = "Slanje slika...";
+      document.getElementById("status").innerText = "Slanje u tijeku...";
 
       try {
-        if (!folderId) folderId = await createFolder();
-        const uploadedLinks = [];
+        const server = await getServer();
+        const folderId = await createFolder();
 
+        const uploadLinks = [];
         for (const file of files) {
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("folderId", folderId);
-
-          const uploadRes = await fetch("https://api.gofile.io/uploadFile", {
-            method: "POST",
-            body: formData,
-          });
-
-          const result = await uploadRes.json();
-          if (result.status !== "ok") throw new Error("Greška pri uploadu slike.");
-
-          uploadedLinks.push(result.data.downloadPage);
+          const link = await uploadFile(server, file, folderId);
+          uploadLinks.push(link);
         }
 
-        const linksText = uploadedLinks.join("\n");
+        const emailContent = uploadLinks.join("\n");
 
         await emailjs.send("service_anlae55", "template_xxka83q", {
-          images: linksText
+          images: emailContent
         });
 
         document.getElementById("status").innerText = "Slike su uspješno poslane!";
+        document.getElementById("cameraInput").value = "";
+        document.getElementById("uploadInput").value = "";
+
       } catch (error) {
         console.error(error);
         document.getElementById("status").innerText = "Greška: " + error.message;
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
