@@ -94,9 +94,12 @@
     document.getElementById("cameraInput").addEventListener("change", updateCount);
     document.getElementById("uploadInput").addEventListener("change", updateCount);
 
-    // Helper function to parse JSON with error reporting
+    // Helper function to parse JSON, and check for plain-text errors
     async function parseJSON(response) {
       const text = await response.text();
+      if (text.trim() === "error-notFound") {
+        throw new Error("API returned error-notFound");
+      }
       try {
         return JSON.parse(text);
       } catch (e) {
