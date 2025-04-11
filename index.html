@@ -14,6 +14,7 @@
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      margin: 0;
     }
 
     .container {
@@ -24,10 +25,12 @@
       max-width: 400px;
       width: 100%;
       text-align: center;
+      box-sizing: border-box;
     }
 
     h2 {
       margin-bottom: 20px;
+      font-size: 20px;
     }
 
     input[type="file"] {
@@ -35,13 +38,16 @@
     }
 
     .btn {
+      display: block;
+      width: 100%;
       padding: 12px 20px;
-      margin: 5px;
+      margin: 10px 0;
       border: none;
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
       color: white;
+      box-sizing: border-box;
     }
 
     .green {
@@ -55,6 +61,7 @@
     .status {
       margin-top: 20px;
       font-size: 16px;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -72,9 +79,7 @@
       <input type="file" id="uploadInput" accept="image/*" multiple />
     </label>
 
-    <br/>
-
-    <button class="btn blue" onclick="sendImages()">Pošalji slike</button>
+    <button class="btn blue" id="sendButton" onclick="sendImages()">Pošalji slike</button>
 
     <div id="status" class="status"></div>
   </div>
@@ -145,6 +150,10 @@
         return;
       }
 
+      const sendButton = document.getElementById("sendButton");
+      sendButton.disabled = true;
+      sendButton.innerText = "Slanje...";
+
       document.getElementById("status").innerText = "Slanje u tijeku...";
 
       try {
@@ -166,10 +175,13 @@
         document.getElementById("status").innerText = "Slike su uspješno poslane!";
         document.getElementById("cameraInput").value = "";
         document.getElementById("uploadInput").value = "";
-
+        updateCount();
       } catch (error) {
-        console.error(error);
+        console.error("Greška:", error);
         document.getElementById("status").innerText = "Greška: " + error.message;
+      } finally {
+        sendButton.disabled = false;
+        sendButton.innerText = "Pošalji slike";
       }
     }
   </script>
