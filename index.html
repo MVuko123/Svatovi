@@ -7,68 +7,78 @@
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
+      background: #f0f2f5;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
     }
+
     .container {
       width: 90%;
-      max-width: 500px;
-      padding: 20px;
-      background: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-top: 40px;
-      border-radius: 10px;
+      max-width: 520px;
+      padding: 30px 25px;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
       text-align: center;
     }
+
     h2 {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      color: #333;
     }
+
     .upload-section {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 24px;
     }
+
     .upload-section button {
       background-color: #1976d2;
       color: white;
       border: none;
-      padding: 15px 20px;
+      padding: 14px 18px;
       font-size: 16px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       width: 100%;
+      transition: background-color 0.2s ease;
     }
+
     .upload-section button:hover {
-      background-color: #1565c0;
+      background-color: #145ea8;
     }
-    .status-section {
-      font-size: 14px;
-      color: #333;
+
+    #fileStatus {
+      font-size: 15px;
+      color: #666;
       margin-top: 10px;
-      min-height: 20px;
     }
+
     .send-button {
       background-color: #ff4081;
       color: white;
       border: none;
-      padding: 15px 20px;
+      padding: 16px 22px;
       font-size: 18px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       width: 100%;
-      margin-top: 20px;
+      margin-top: 10px;
+      transition: background-color 0.2s ease;
     }
+
     .send-button:hover {
       background-color: #e73370;
     }
+
     .loader {
       border: 5px solid #f3f3f3;
       border-top: 5px solid #1976d2;
@@ -79,36 +89,48 @@
       margin: 20px auto;
       display: none;
     }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    #fileStatus {
-      font-size: 14px;
-      color: #555;
-      margin-top: 8px;
+
+    .status-section {
+      font-size: 15px;
+      color: #333;
+      margin-top: 20px;
+      min-height: 30px;
+    }
+
+    .status-success {
+      color: green;
+    }
+
+    .status-error {
+      color: red;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Pošaljite slike sa svatova</h2>
+    <h2>📸 Pošaljite slike sa svatova</h2>
     <div class="upload-section">
-      <button type="button" onclick="document.getElementById('cameraInput').click()">Otvorite kameru</button>
+      <button type="button" onclick="document.getElementById('cameraInput').click()">📷 Otvorite kameru</button>
       <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" multiple />
 
-      <button type="button" onclick="document.getElementById('galleryInput').click()">Odaberite slike iz galerije</button>
+      <button type="button" onclick="document.getElementById('galleryInput').click()">🖼️ Odaberite slike iz galerije</button>
       <input type="file" id="galleryInput" accept="image/*" style="display: none;" multiple />
 
       <div id="fileStatus">Nijedna slika nije odabrana</div>
     </div>
-    <button class="send-button" onclick="sendImages()">Pošaljite slike na e-mail</button>
+
+    <button class="send-button" onclick="sendImages()">📤 Pošaljite slike na e-mail</button>
     <div class="loader" id="loader"></div>
     <div class="status-section" id="statusText"></div>
   </div>
-  
+
   <script>
-    // Initialize EmailJS with your public key
+    // Inicijalizacija EmailJS-a s tvojim javnim ključem
     emailjs.init("g42tnmFpURrlkWGUF");
 
     const cameraInput = document.getElementById('cameraInput');
@@ -116,8 +138,7 @@
     const fileStatus = document.getElementById('fileStatus');
     const loader = document.getElementById('loader');
     const statusText = document.getElementById('statusText');
-    
-    // Update the file status indicator when files are selected
+
     function updateFileStatus() {
       const count = cameraInput.files.length + galleryInput.files.length;
       if (count === 0) {
@@ -125,21 +146,26 @@
       } else if (count === 1) {
         fileStatus.textContent = "1 slika odabrana";
       } else {
-        fileStatus.textContent = count + " slika odabrano";
+        fileStatus.textContent = `${count} slika odabrano`;
       }
     }
+
     cameraInput.addEventListener("change", updateFileStatus);
     galleryInput.addEventListener("change", updateFileStatus);
 
     async function sendImages() {
       const files = [...cameraInput.files, ...galleryInput.files];
+      statusText.className = "status-section";
+
       if (!files.length) {
-        alert("Molimo odaberite barem jednu sliku.");
+        statusText.textContent = "⚠️ Molimo odaberite barem jednu sliku.";
+        statusText.classList.add("status-error");
         return;
       }
 
       loader.style.display = "block";
-      statusText.textContent = "Učitavanje i slanje slika...";
+      statusText.textContent = "⏳ Učitavanje i slanje slika...";
+
       const uploadedLinks = [];
 
       for (const file of files) {
@@ -150,35 +176,34 @@
             method: "POST",
             body: formData
           });
-          const text = await res.text();
-          const result = JSON.parse(text);
+          const result = await res.json();
           if (result.status !== "ok") throw new Error("Neuspjelo učitavanje slike");
           uploadedLinks.push(result.data.downloadPage);
         } catch (error) {
           console.error("Greška pri učitavanju:", error);
-          alert("Greška pri učitavanju: " + error.message);
+          statusText.textContent = "❌ Greška pri učitavanju: " + error.message;
+          statusText.classList.add("status-error");
           loader.style.display = "none";
-          statusText.textContent = "";
           return;
         }
       }
 
       const plainLinks = uploadedLinks.join("\n");
+
       emailjs.send("service_anlae55", "template_xxka83q", {
         images: plainLinks
       })
       .then(() => {
-        alert("Slike su uspješno poslane!");
-        statusText.textContent = "Slanje završeno!";
-        // Reset file inputs
+        statusText.textContent = "✅ Slike su uspješno poslane!";
+        statusText.classList.add("status-success");
         cameraInput.value = "";
         galleryInput.value = "";
         updateFileStatus();
       })
       .catch((error) => {
         console.error("Slanje e-maila nije uspjelo:", error);
-        alert("Greška: " + error.message);
-        statusText.textContent = "Greška pri slanju.";
+        statusText.textContent = "❌ Greška pri slanju: " + error.message;
+        statusText.classList.add("status-error");
       })
       .finally(() => {
         loader.style.display = "none";
